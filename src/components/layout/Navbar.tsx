@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Menu, MessageCircle, X } from "lucide-react";
@@ -75,9 +76,14 @@ export function Navbar() {
         className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:h-20 sm:px-8"
       >
         <a href="#inicio" className="group flex items-center gap-3" aria-label="Ir al inicio">
-          <span className="grid size-9 place-items-center rounded-full border border-gold/40 font-display text-sm font-black text-gold transition group-hover:bg-gold group-hover:text-ink-950">
-            GC
-          </span>
+          <Image
+            src="/images/logo-fie.png"
+            alt="Logo de Ingeniería Económica UNA-Puno"
+            width={44}
+            height={44}
+            priority
+            className="size-10 rounded-full ring-1 ring-gold/40 transition duration-300 group-hover:scale-105 group-hover:ring-gold sm:size-11"
+          />
           <span className="hidden leading-none sm:block">
             <span className="block font-display text-lg font-extrabold tracking-wide uppercase">
               {event.name}
