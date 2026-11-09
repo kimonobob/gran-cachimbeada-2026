@@ -13,13 +13,11 @@ export type Artist = {
 
 export type Song = {
   id: string;
-  title: string;
   artistId: string;
-  youtubeVideoId?: string;
-  spotifyUrl?: string;
-  coverImage?: string;
-  /** Canal o fuente donde está publicado el video (informativo). */
-  source?: string;
+  /** Ruta del archivo de audio dentro de /public (ej. "/audio/archivo.mp3"). */
+  audioSrc: string;
+  /** Nombre de la canción. Si se omite se muestra "Éxito N". */
+  title?: string;
 };
 
 export type Ticket = {

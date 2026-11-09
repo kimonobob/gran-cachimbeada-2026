@@ -71,7 +71,7 @@ export function Footer() {
           <p>
             © 2026 {event.fullName}. {event.city}.
           </p>
-          <p>Videos musicales reproducidos desde YouTube. Las marcas pertenecen a sus titulares.</p>
+          <p>Las marcas y fotografías pertenecen a sus titulares.</p>
         </div>
       </div>
     </footer>

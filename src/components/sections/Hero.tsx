@@ -125,20 +125,33 @@ export function Hero() {
           <CountdownDisplay />
         </div>
 
-        <div className="rise mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row" style={d(1.05)}>
-          <a href="#evento" className={buttonClass("primary", "w-full sm:w-auto")}>
+        <div className="rise mt-9 flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row" style={d(1.05)}>
+          {/* Botón de música destacado: lleva a "Escucha sus más grandes éxitos". */}
+          <a
+            href="#musica"
+            className="group relative inline-flex w-full items-center justify-center gap-3 rounded-full bg-gold py-4 pr-8 pl-4 text-base font-bold tracking-wide text-ink-950 shadow-[0_0_0_1px_rgba(245,182,66,0.4),0_18px_50px_-12px_rgba(245,182,66,0.75)] transition-all duration-300 hover:scale-[1.04] hover:bg-gold-soft active:scale-[0.97] sm:w-auto sm:text-lg"
+          >
+            <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-gold/25 [animation-duration:2.6s]" />
+            <span className="relative grid size-10 place-items-center rounded-full bg-ink-950 text-gold">
+              <Headphones className="size-5" aria-hidden />
+            </span>
+            <span className="relative">Escuchar música</span>
+            <span aria-hidden className="eq eq-on relative inline-flex h-4 items-end gap-[3px] [&>span]:bg-ink-950">
+              <span className="eq-bar w-[3px] rounded-full" />
+              <span className="eq-bar w-[3px] rounded-full" />
+              <span className="eq-bar w-[3px] rounded-full" />
+              <span className="eq-bar w-[3px] rounded-full" />
+            </span>
+          </a>
+          <a href="#evento" className={buttonClass("secondary", "w-full sm:w-auto")}>
             Conoce el evento
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden />
-          </a>
-          <a href="#musica" className={buttonClass("secondary", "w-full sm:w-auto")}>
-            <Headphones className="size-4" aria-hidden />
-            Escuchar música
           </a>
         </div>
       </div>
 
       <a
-        href="#artistas"
+        href="#musica"
         className="fade-in absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[10px] tracking-[0.3em] text-cream/45 uppercase transition hover:text-cream sm:flex"
         style={d(1.4)}
         aria-label="Desplázate para ver más"

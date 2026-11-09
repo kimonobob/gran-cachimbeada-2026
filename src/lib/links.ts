@@ -8,14 +8,6 @@ export function whatsappUrl(message?: string, phone: string = event.contact.what
 export const defaultWhatsappMessage =
   "Hola, quisiera información sobre la Gran Cachimbeada de Ingeniería Económica 2026.";
 
-export function youtubeWatchUrl(videoId: string) {
-  return `https://www.youtube.com/watch?v=${videoId}`;
-}
-
-export function youtubeThumbnail(videoId: string) {
-  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-}
-
 /** Enlace "Agregar a Google Calendar" (duración estimada de 5 h). */
 export function googleCalendarUrl() {
   const start = new Date(event.startDate);

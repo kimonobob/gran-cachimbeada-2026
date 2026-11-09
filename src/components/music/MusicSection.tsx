@@ -1,418 +1,271 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import {
-  AlertCircle,
-  ExternalLink,
-  Loader2,
-  Music2,
-  Pause,
-  Play,
-  Shuffle,
-  SkipForward,
-  Sparkles,
-} from "lucide-react";
+import { AlertCircle, Pause, Play, Shuffle } from "lucide-react";
 import { artists, artistById } from "@/data/artists";
-import { youtubeThumbnail, youtubeWatchUrl } from "@/lib/links";
+import { songTitle } from "@/data/songs";
 import { cn } from "@/lib/cn";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { buttonClass } from "@/components/ui/buttons";
-import type { Song } from "@/types";
-import { useMusic, type PlayerStatus } from "./MusicProvider";
+import type { Artist } from "@/types";
+import { useMusic } from "./MusicProvider";
 import { Equalizer } from "./Equalizer";
 
-const statusText: Record<PlayerStatus, string> = {
-  idle: "Listo para sonar",
-  loading: "Cargando el video oficial…",
-  buffering: "Cargando…",
-  playing: "Sonando ahora",
-  paused: "En pausa",
-  blocked: "Tu navegador bloqueó la reproducción automática. Pulsa reproducir o toca el video.",
-  external: "Esta canción se escucha en su plataforma original.",
-  error: "No se pudo reproducir",
-};
-
-const coverFor = (song: Song | null) => {
-  if (!song) return null;
-  if (song.coverImage) return song.coverImage;
-  if (song.youtubeVideoId) return youtubeThumbnail(song.youtubeVideoId);
-  return artistById(song.artistId)?.photo ?? null;
-};
-
+/**
+ * "Escucha sus más grandes éxitos": los tres artistas a pantalla completa,
+ * sin marcos, y un botón que reproduce al azar cualquiera de sus audios.
+ */
 export function MusicSection() {
-  const music = useMusic();
-  const { songs, current, status, active } = music;
-  const isEmpty = songs.length === 0;
+  const { songs, current, status, setSectionVisible } = useMusic();
+  const sectionRef = useRef<HTMLElement>(null);
+  const hasMusic = current !== null && status !== "idle";
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setSectionVisible(entry.isIntersecting), {
+      threshold: 0.25,
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [setSectionVisible]);
+
+  // Orden visual en escritorio: Rosita · Águilas (centro) · Roy.
+  const ordered = ["rosita-de-espinar", "aguilas-de-america", "roy-gentiles"]
+    .map((id) => artists.find((a) => a.id === id))
+    .filter((a): a is Artist => Boolean(a));
 
   return (
     <section
+      ref={sectionRef}
       id="musica"
       aria-labelledby="musica-title"
-      className="relative overflow-hidden bg-gradient-to-b from-ink-950 via-wine-950 to-ink-950 py-24 sm:py-32"
+      className="grain relative isolate flex min-h-[100svh] flex-col justify-center overflow-hidden bg-ink-950 pt-20 pb-10 -scroll-mt-20 sm:pt-24 sm:pb-12"
     >
-      <div aria-hidden className="pointer-events-none absolute top-1/3 left-1/2 size-[60vmax] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(214,76,143,0.12),transparent_60%)]" />
-      <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-        <SectionHeading
+      {/* Ambiente */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(90%_60%_at_50%_100%,var(--color-wine-900)_0%,transparent_70%)]" />
+        <div className="absolute top-[5%] left-[10%] size-[45vmax] animate-drift rounded-full bg-[radial-gradient(circle,rgba(245,182,66,0.12),transparent_60%)] blur-2xl" />
+        <div className="absolute top-[20%] right-[5%] size-[45vmax] animate-drift-slow rounded-full bg-[radial-gradient(circle,rgba(214,76,143,0.14),transparent_60%)] blur-2xl" />
+        {/* Piso de escenario */}
+        <div className="absolute bottom-[22%] left-1/2 h-40 w-[110%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(245,182,66,0.16),transparent)] sm:bottom-[20%]" />
+      </div>
+
+      <div className="mx-auto w-full max-w-7xl px-5 sm:px-8">
+        <motion.h2
           id="musica-title"
-          eyebrow="Experiencia musical"
-          title={
-            <>
-              Calienta la <span className="font-serif font-normal text-rose normal-case italic">noche</span>
-            </>
-          }
-          description="Escucha al azar canciones de los artistas de la Gran Cachimbeada con sus videos oficiales de YouTube. Pulsa «Sorpréndeme» y deja que suene."
-        />
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center"
+        >
+          <span className="block font-serif text-[clamp(1.9rem,6vw,3.5rem)] leading-none text-gold italic">
+            Escucha sus
+          </span>
+          <span className="title-shine block font-display -mt-[0.08em] pt-[0.16em] text-[clamp(2.6rem,10vw,6.5rem)] leading-[0.9] font-black tracking-tight uppercase">
+            Más grandes éxitos
+          </span>
+        </motion.h2>
 
-        {isEmpty ? (
-          <EmptyCatalog />
-        ) : (
-          <div className="mt-14 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8">
-            <div className="flex min-w-0 flex-col gap-6">
-              <ArtistFilters />
-              <NowPlayingCard />
-            </div>
-            <div className="flex min-w-0 flex-col gap-6">
-              <VideoSlot />
-              <TrackList />
-            </div>
-          </div>
-        )}
+        {/* Artistas, sin marcos */}
+        <ul className="mt-6 grid grid-cols-2 items-end gap-x-2 gap-y-4 sm:mt-8 lg:grid-cols-[1fr_1.55fr_1fr] lg:gap-x-6">
+          {ordered.map((artist, i) => (
+            <li
+              key={artist.id}
+              className={cn(artist.id === "aguilas-de-america" && "order-first col-span-2 lg:order-none lg:col-span-1")}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+                transition={{ duration: 0.9, delay: 0.1 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <ArtistFigure
+                  artist={artist}
+                  highlighted={hasMusic && current?.artistId === artist.id}
+                  dimmed={hasMusic && current?.artistId !== artist.id}
+                />
+              </motion.div>
+            </li>
+          ))}
+        </ul>
 
-        <p className="sr-only" aria-live="polite">
-          {current ? `${statusText[status]}: ${current.title}` : ""}
-        </p>
-        {active && (
-          <p className="mt-6 text-center text-xs text-cream/40">
-            El reproductor te acompañará mientras recorres la página.
-          </p>
-        )}
+        {/* Botón principal y estado */}
+        <div className="mt-6 flex min-h-[8.5rem] flex-col items-center sm:mt-8">
+          {songs.length === 0 ? (
+            <p className="max-w-md text-center text-sm text-cream/55">
+              Los audios llegan muy pronto. (Organizadores: agréguenlos en{" "}
+              <code className="text-gold">src/data/songs.ts</code>.)
+            </p>
+          ) : (
+            <AnimatePresence mode="wait" initial={false}>
+              {hasMusic ? <NowPlaying key="playing" /> : <ListenButton key="idle" />}
+            </AnimatePresence>
+          )}
+        </div>
       </div>
     </section>
   );
 }
 
-function ArtistFilters() {
-  const { filter, setFilter, songs } = useMusic();
-  const options = [
-    { id: "all", label: "Todos", count: songs.length },
-    ...artists.map((a) => ({
-      id: a.id,
-      label: a.name,
-      count: songs.filter((s) => s.artistId === a.id).length,
-    })),
-  ];
+function ArtistFigure({
+  artist,
+  highlighted,
+  dimmed,
+}: {
+  artist: Artist;
+  highlighted: boolean;
+  dimmed: boolean;
+}) {
+  const { playRandom } = useMusic();
+  const isGroup = artist.id === "aguilas-de-america";
 
   return (
-    <div role="radiogroup" aria-label="Filtrar por artista" className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 sm:mx-0 sm:flex-wrap sm:px-0">
-      {options.map((o) => {
-        const selected = filter === o.id;
-        return (
-          <button
-            key={o.id}
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            onClick={() => setFilter(o.id)}
-            className={cn(
-              "shrink-0 rounded-full border px-4 py-2 text-sm whitespace-nowrap transition-all duration-300",
-              selected
-                ? "border-gold bg-gold text-ink-950"
-                : "border-white/10 bg-white/[0.03] text-cream/70 hover:border-white/25 hover:text-cream",
-            )}
-          >
-            {o.label}
-            <span className={cn("ml-2 text-xs", selected ? "text-ink-950/60" : "text-cream/35")}>
-              {o.count}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+    <figure
+      className={cn(
+        "group flex flex-col items-center transition-[opacity,filter] duration-700",
+        dimmed && "opacity-40 grayscale-[50%]",
+      )}
+    >
+      <button
+        type="button"
+        onClick={() => playRandom(artist.id)}
+        aria-label={`Escuchar a ${artist.name}`}
+        className={cn(
+          "relative block w-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1",
+          isGroup ? "h-36 sm:h-56 lg:h-[clamp(13rem,34vh,24rem)]" : "h-44 sm:h-64 lg:h-[clamp(15rem,40vh,28rem)]",
+          highlighted && "scale-[1.03]",
+        )}
+      >
+        {/* Halo del artista que suena */}
+        <span
+          aria-hidden
+          className={cn(
+            "absolute inset-x-[10%] bottom-0 h-2/3 rounded-[50%] blur-3xl transition-opacity duration-700",
+            highlighted ? "opacity-60" : "opacity-0 group-hover:opacity-30",
+          )}
+          style={{ background: artist.accent }}
+        />
+        <Image
+          src={artist.photo}
+          alt={artist.photoAlt}
+          fill
+          sizes={isGroup ? "(min-width:1024px) 45vw, 100vw" : "(min-width:1024px) 28vw, 50vw"}
+          className="object-contain object-bottom [mask-image:linear-gradient(to_top,transparent_0%,black_22%)]"
+        />
+      </button>
+      <figcaption className="mt-2 flex items-center gap-2 text-center">
+        {highlighted && <Equalizer playing />}
+        <span
+          className={cn(
+            "font-display text-base leading-none font-extrabold tracking-wide uppercase transition-colors sm:text-xl lg:text-2xl",
+            highlighted ? "text-gold" : "text-cream/90",
+          )}
+        >
+          {artist.name}
+        </span>
+      </figcaption>
+    </figure>
   );
 }
 
-function NowPlayingCard() {
-  const { current, status, errorMessage, toggle, next, surprise, filteredSongs, pickCount } =
-    useMusic();
-  const artist = current ? artistById(current.artistId) : undefined;
-  const isPlaying = status === "playing" || status === "buffering";
-  const isLoading = status === "loading" || status === "buffering";
-  const noSongs = filteredSongs.length === 0;
-  const discLabel = artist?.photo ?? null;
+function ListenButton() {
+  const { playRandom } = useMusic();
 
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-white/[0.08] bg-ink-900/70 p-6 backdrop-blur-xl sm:p-8">
-      <div className="flex items-center gap-5 sm:gap-6">
-        {/* Disco */}
-        <div className="relative size-28 shrink-0 sm:size-36">
-          <div
-            className={cn(
-              "absolute inset-0 rounded-full bg-[repeating-radial-gradient(circle,#18121c_0px,#18121c_2px,#100c13_3px,#100c13_4px)] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.9)] ring-1 ring-white/10",
-              isPlaying && "spin-slow",
-            )}
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.35 }}
+      className="flex flex-col items-center gap-4"
+    >
+      <button
+        type="button"
+        onClick={() => playRandom("all")}
+        className="group relative inline-flex items-center gap-3 rounded-full bg-gold px-10 py-4 text-lg font-bold tracking-wide text-ink-950 transition hover:scale-[1.04] hover:bg-gold-soft active:scale-[0.97] sm:px-14 sm:text-xl"
+      >
+        <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-gold/30 [animation-duration:2.4s]" />
+        <span className="relative grid size-9 place-items-center rounded-full bg-ink-950 text-gold">
+          <Play className="ml-0.5 size-4 fill-current" aria-hidden />
+        </span>
+        <span className="relative">Escuchar</span>
+      </button>
+      <p className="max-w-sm text-center text-sm text-cream/50">
+        Suena al azar un éxito de cualquiera de los tres. También puedes tocar a tu artista favorito.
+      </p>
+    </motion.div>
+  );
+}
+
+function NowPlaying() {
+  const { current, status, progress, pickCount, toggle, next } = useMusic();
+  if (!current) return null;
+  const artist = artistById(current.artistId);
+  const isPlaying = status === "playing" || status === "loading";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.35 }}
+      className="flex w-full max-w-md flex-col items-center"
+    >
+      <p className="sr-only" aria-live="polite">
+        {status === "error" ? "No se pudo reproducir" : `Sonando ${artist?.name}, ${songTitle(current)}`}
+      </p>
+
+      {status === "error" ? (
+        <p className="mb-4 flex items-center gap-2 text-sm text-cream/80" role="status">
+          <AlertCircle className="size-4 text-rose" aria-hidden />
+          No se pudo reproducir este audio.
+        </p>
+      ) : (
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={pickCount}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="mb-4 text-center text-sm text-cream/60"
           >
-            <div className="absolute inset-[30%] overflow-hidden rounded-full bg-wine-800 ring-2 ring-gold/60">
-              {discLabel ? (
-                <Image src={discLabel} alt="" fill sizes="60px" className="object-cover object-top" />
-              ) : (
-                <span className="grid h-full place-items-center font-display text-xs font-black text-gold">
-                  GC
-                </span>
-              )}
-            </div>
-            <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_120deg,transparent_0deg,rgba(255,255,255,0.08)_40deg,transparent_80deg,transparent_200deg,rgba(255,255,255,0.06)_240deg,transparent_280deg)]" />
-          </div>
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold tracking-[0.2em] text-gold uppercase">
-            {isPlaying ? (
-              <Equalizer playing />
-            ) : isLoading ? (
-              <Loader2 className="size-3.5 animate-spin" aria-hidden />
-            ) : (
-              <Music2 className="size-3.5" aria-hidden />
-            )}
-            {status === "blocked" || status === "external" || status === "error"
-              ? status === "error"
-                ? "Error"
-                : "Atención"
-              : statusText[status]}
-          </p>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={current?.id ?? "none"}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.35 }}
-            >
-              <h3 className="line-clamp-2 font-display text-3xl leading-[0.95] font-extrabold uppercase sm:text-4xl">
-                {current?.title ?? "Elige tu canción"}
-              </h3>
-              <p className="mt-1.5 truncate text-sm text-cream/60">
-                {artist?.name ?? "Águilas de América · Rosita de Espinar · Roy Gentiles"}
-              </p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
-
-      {(status === "blocked" || status === "external" || status === "error") && (
-        <div
-          role="status"
-          className={cn(
-            "mt-6 flex items-start gap-3 rounded-2xl border p-4 text-sm",
-            status === "error"
-              ? "border-rose/30 bg-rose/[0.08] text-cream"
-              : "border-gold/25 bg-gold/[0.06] text-cream/85",
-          )}
-        >
-          <AlertCircle className={cn("mt-0.5 size-4 shrink-0", status === "error" ? "text-rose" : "text-gold")} aria-hidden />
-          <div className="space-y-2">
-            <p>{status === "error" ? errorMessage : statusText[status]}</p>
-            <ExternalLinks song={current} />
-          </div>
-        </div>
+            <span className="font-semibold text-cream">{artist?.name}</span> · {songTitle(current)}
+          </motion.p>
+        </AnimatePresence>
       )}
 
-      {/* Controles */}
-      <div className="mt-7 flex items-center gap-3">
+      <div className="mb-6 h-1 w-full overflow-hidden rounded-full bg-white/10" aria-hidden>
+        <div className="h-full rounded-full bg-gold transition-[width] duration-300" style={{ width: `${progress * 100}%` }} />
+      </div>
+
+      <div className="flex items-center gap-4">
         <button
           type="button"
           onClick={toggle}
-          disabled={noSongs}
           aria-label={isPlaying ? "Pausar" : "Reproducir"}
-          className="grid size-14 shrink-0 place-items-center rounded-full bg-gold text-ink-950 transition hover:scale-105 hover:bg-gold-soft active:scale-95 disabled:opacity-40"
+          className="grid size-16 place-items-center rounded-full bg-gold text-ink-950 transition hover:scale-105 hover:bg-gold-soft active:scale-95"
         >
-          {isPlaying ? (
-            <Pause className="size-6 fill-current" />
-          ) : (
-            <Play className="ml-0.5 size-6 fill-current" />
-          )}
+          {isPlaying ? <Pause className="size-6 fill-current" /> : <Play className="ml-1 size-6 fill-current" />}
         </button>
         <button
           type="button"
           onClick={next}
-          disabled={noSongs}
-          aria-label="Siguiente canción"
-          title="Siguiente canción"
-          className="grid size-12 shrink-0 place-items-center rounded-full border border-white/15 text-cream transition hover:border-white/35 hover:bg-white/[0.06] disabled:opacity-40"
-        >
-          <SkipForward className="size-5" />
-        </button>
-        <button
-          type="button"
-          onClick={surprise}
-          disabled={noSongs}
-          className={buttonClass("rose", "ml-auto px-5")}
+          className="inline-flex items-center gap-2 rounded-full border border-cream/20 px-6 py-4 text-sm font-semibold text-cream transition hover:border-cream/45 hover:bg-white/[0.06]"
         >
           <motion.span
             key={pickCount}
-            initial={{ rotate: -180, scale: 0.6 }}
-            animate={{ rotate: 0, scale: 1 }}
+            initial={{ rotate: -180 }}
+            animate={{ rotate: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 16 }}
             className="inline-flex"
           >
-            <Sparkles className="size-4" aria-hidden />
+            <Shuffle className="size-4" aria-hidden />
           </motion.span>
-          Sorpréndeme
+          Otra al azar
         </button>
       </div>
-
-      <p className="mt-5 flex items-center gap-2 text-xs text-cream/40">
-        <Shuffle className="size-3.5" aria-hidden />
-        Modo aleatorio: escucharás todo el repertorio antes de que una canción se repita.
-      </p>
-
-      {current && status !== "error" && status !== "external" && (
-        <div className="mt-4">
-          <ExternalLinks song={current} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ExternalLinks({ song }: { song: Song | null }) {
-  if (!song) return null;
-  return (
-    <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
-      {song.youtubeVideoId && (
-        <a
-          href={youtubeWatchUrl(song.youtubeVideoId)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-cream/60 underline-offset-4 transition hover:text-cream hover:underline"
-        >
-          <ExternalLink className="size-3.5" aria-hidden />
-          Abrir en YouTube
-        </a>
-      )}
-      {song.spotifyUrl && (
-        <a
-          href={song.spotifyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-[#1ed760]/80 underline-offset-4 transition hover:text-[#1ed760] hover:underline"
-        >
-          <ExternalLink className="size-3.5" aria-hidden />
-          Escuchar en Spotify
-        </a>
-      )}
-    </div>
-  );
-}
-
-function VideoSlot() {
-  const { registerSlot, current, active, surprise, filteredSongs } = useMusic();
-  const cover = coverFor(current);
-
-  return (
-    <div
-      ref={registerSlot}
-      className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-black"
-    >
-      {!active && (
-        <button
-          type="button"
-          onClick={surprise}
-          disabled={filteredSongs.length === 0}
-          className="group absolute inset-0 grid place-items-center text-center"
-          aria-label="Reproducir una canción aleatoria"
-        >
-          {cover && (
-            <Image src={cover} alt="" fill sizes="(min-width:1024px) 55vw, 100vw" className="object-cover opacity-40 transition duration-700 group-hover:scale-105 group-hover:opacity-55" unoptimized={cover.startsWith("http")} />
-          )}
-          <span className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(14,11,17,0.85))]" />
-          <span className="relative flex flex-col items-center gap-4 px-6">
-            <span className="grid size-16 place-items-center rounded-full border border-cream/30 bg-ink-950/50 backdrop-blur-md transition group-hover:scale-110 group-hover:border-gold group-hover:bg-gold group-hover:text-ink-950 sm:size-20">
-              <Play className="ml-1 size-7 fill-current" aria-hidden />
-            </span>
-            <span className="text-sm text-cream/70">
-              El video oficial aparecerá aquí
-            </span>
-          </span>
-        </button>
-      )}
-    </div>
-  );
-}
-
-function TrackList() {
-  const { filteredSongs, current, playSong, status } = useMusic();
-
-  if (filteredSongs.length === 0) {
-    return (
-      <p className="rounded-2xl border border-dashed border-white/10 p-6 text-center text-sm text-cream/55">
-        Este artista aún no tiene canciones en el reproductor. Muy pronto.
-      </p>
-    );
-  }
-
-  return (
-    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02]">
-      <p className="border-b border-white/[0.06] px-5 py-3 text-[11px] font-semibold tracking-[0.2em] text-cream/45 uppercase">
-        Repertorio · {filteredSongs.length} canciones
-      </p>
-      <ol className="max-h-80 overflow-y-auto py-2">
-        {filteredSongs.map((song, i) => {
-          const isCurrent = current?.id === song.id;
-          const artist = artistById(song.artistId);
-          return (
-            <li key={song.id}>
-              <button
-                type="button"
-                onClick={() => playSong(song.id)}
-                aria-current={isCurrent ? "true" : undefined}
-                className={cn(
-                  "flex w-full items-center gap-4 px-5 py-2.5 text-left transition hover:bg-white/[0.04]",
-                  isCurrent && "bg-white/[0.05]",
-                )}
-              >
-                <span className="w-5 shrink-0 text-center text-xs text-cream/35 tabular-nums">
-                  {isCurrent ? (
-                    <Equalizer playing={status === "playing"} />
-                  ) : (
-                    String(i + 1).padStart(2, "0")
-                  )}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className={cn("block truncate text-sm", isCurrent ? "text-gold" : "text-cream/90")}>
-                    {song.title}
-                  </span>
-                  <span className="block truncate text-xs text-cream/45">
-                    {artist?.name}
-                    {song.source && song.source !== artist?.name ? ` · ${song.source}` : ""}
-                  </span>
-                </span>
-                {!song.youtubeVideoId && song.spotifyUrl && (
-                  <span className="text-[10px] tracking-wider text-[#1ed760]/80 uppercase">Spotify</span>
-                )}
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-    </div>
-  );
-}
-
-function EmptyCatalog() {
-  return (
-    <div className="mt-14 flex flex-col items-center rounded-[28px] border border-dashed border-white/15 bg-white/[0.02] px-6 py-16 text-center">
-      <span className="grid size-16 place-items-center rounded-full border border-gold/30 text-gold">
-        <Music2 className="size-7" aria-hidden />
-      </span>
-      <h3 className="mt-6 font-display text-3xl font-extrabold uppercase">El repertorio llega muy pronto</h3>
-      <p className="mt-3 max-w-md text-sm text-cream/60">
-        Estamos preparando la selección de canciones de Águilas de América, Rosita de Espinar y Roy
-        Gentiles.
-      </p>
-      <p className="mt-6 rounded-xl bg-black/40 px-4 py-3 font-mono text-xs text-cream/50">
-        Para organizadores: agrega canciones en <span className="text-gold">src/data/songs.ts</span>
-      </p>
-    </div>
+    </motion.div>
   );
 }

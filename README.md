@@ -16,20 +16,17 @@ Lucide**. La página se prerenderiza como contenido estático. No usa base de da
 
 | Sección | Qué hace |
 | --- | --- |
-| Hero | Título animado, iluminación ambiental, partículas, cuenta regresiva y llamadas a la acción |
-| Artistas | Tres tarjetas con fotos reales. En móvil se muestran como carrusel. "Escuchar repertorio" filtra el reproductor por artista |
-| Música | Reproductor aleatorio con la **YouTube IFrame Player API**, cola *shuffle*, filtro por artista y botones Sorpréndeme, Siguiente y Reproducir/Pausar |
-| Reproductor flotante | Al salir de la sección, el mismo video pasa a una ventana compacta sin recargarse. Mide al menos 200 px de alto y se puede minimizar (al hacerlo se pausa) |
+| Hero | Título animado, iluminación ambiental, partículas, cuenta regresiva y un botón **Escuchar música** destacado que lleva a la sección de música |
+| Escucha sus más grandes éxitos | Los tres artistas a pantalla completa y sin marcos. El botón **Escuchar** reproduce al azar cualquiera de sus audios (cola *shuffle*: no se repite ninguno hasta que suenan todos). Tocar la foto de un artista reproduce solo sus audios, y el que suena se resalta |
+| Mini reproductor | Al salir de la sección aparece una barra flotante con pausa, otra al azar y cerrar |
 | Evento | Componente `EventDetails` con fecha, hora, lugar (editable), mapa opcional, contacto, cuenta regresiva y "Agregar a mi calendario" |
 | Entradas | Tarjetas GOLDEN y VIP con precio y beneficios editables, y botón a WhatsApp con un mensaje distinto para cada entrada |
 | Sorteo | Premios por tipo de entrada, logotipos informativos, fecha, procedimiento y términos editables |
 | Afiche | Afiche original con visor ampliado, descarga y botón para compartir |
 | SEO | Metadatos, Open Graph (imagen generada), favicon y datos estructurados `MusicEvent` |
 
-**Música:** no se reproduce nada al abrir la página. El script de YouTube solo se descarga
-cuando el visitante pulsa reproducir. Los errores (video eliminado, inserción no permitida,
-sin conexión) y los bloqueos de reproducción automática muestran un mensaje y el enlace
-"Abrir en YouTube".
+**Música:** no suena nada al abrir la página; el audio empieza solo cuando el visitante pulsa
+"Escuchar". Los MP3 están en `public/audio/`.
 
 ---
 
@@ -67,17 +64,17 @@ src/
   components/
     layout/               # Navbar, Footer, Providers
     sections/             # Hero, Artists, EventDetails, Tickets, Raffle, Poster
-    music/                # MusicProvider (estado + YouTube), PlayerStage, MusicSection
+    music/                # MusicProvider (audio), MusicSection, MiniPlayer
     ui/                   # Reveal, SectionHeading, CountdownDisplay, botones
   data/                   # <- TODO EL CONTENIDO EDITABLE
     event.ts  artists.ts  songs.ts  tickets.ts  raffle.ts  navigation.ts
   hooks/useCountdown.ts
   lib/
     shuffle.ts            # lógica aleatoria pura (sin React)
-    youtube.ts            # carga de la IFrame API y mensajes de error
-    links.ts              # WhatsApp, YouTube, Google Calendar
+    links.ts              # WhatsApp y Google Calendar
     structured-data.ts    # schema.org Event
   types/index.ts
+public/audio/              # audios de los artistas (MP3)
 public/images/
   afiche-original.png     # afiche oficial (descargable)
   afiche-share.jpg        # versión liviana para la imagen de redes
@@ -116,29 +113,24 @@ whatsappMessage: "Hola, ...",  // mensaje predefinido de WhatsApp
 Completa `drawDate`, `procedure`, `delivery` y la lista `terms`. Los valores `null`
 se muestran como "Por anunciar".
 
-### Canciones — `src/data/songs.ts`
+### Audios — `src/data/songs.ts`
 
-1. Copia el ID del video: `https://www.youtube.com/watch?v=`**`qXjTzhqsYKU`**
-2. Agrega una entrada:
+1. Copia el MP3 a `public/audio/` (nombre sin espacios ni tildes, ej. `roy-gentiles-6.mp3`).
+2. Para los audios numerados basta con cambiar la cantidad:
 
    ```ts
-   {
-     id: "aguilas-nueva-cancion",      // único
-     title: "Nombre de la canción",
-     artistId: "aguilas-de-america",   // id definido en artists.ts
-     youtubeVideoId: "XXXXXXXXXXX",
-     spotifyUrl: "https://open.spotify.com/track/...", // opcional
-     coverImage: "/images/covers/portada.webp",        // opcional
-     source: "Canal que publica el video",             // opcional
-   },
+   ...clips("roy-gentiles", 6),   // busca roy-gentiles-1.mp3 … roy-gentiles-6.mp3
    ```
 
-3. Usa videos de canales oficiales que permitan la inserción. Para comprobar un video:
-   `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=ID&format=json`
-   (si responde `401` o `404`, ese video no se puede insertar).
+3. Para ponerle el nombre real a un audio (si no, se muestra "Éxito 1", "Éxito 2"…),
+   agrega una entrada con `title`:
 
-Una canción con `spotifyUrl` y sin `youtubeVideoId` muestra el botón "Escuchar en Spotify".
-Si el arreglo queda vacío, la sección muestra un estado vacío sin errores.
+   ```ts
+   { id: "roy-gentiles-1", artistId: "roy-gentiles",
+     audioSrc: "/audio/roy-gentiles-1.mp3", title: "Nombre de la canción" },
+   ```
+
+Si el arreglo queda vacío, la sección muestra un mensaje sin errores.
 
 ### Artistas e imágenes — `src/data/artists.ts`
 
@@ -200,8 +192,7 @@ mismos metadatos Open Graph).
 
 ## Notas legales
 
-- Los videos se reproducen con el reproductor oficial de YouTube, siempre visible. No se
-  extrae el audio.
+- Asegúrate de contar con permiso para publicar los audios de los artistas.
 - Claude es una marca de Anthropic y ChatGPT es una marca de OpenAI. Sus logotipos aparecen
   solo con fines informativos. El sorteo no está patrocinado ni avalado por esas empresas.
 - El repositorio no contiene credenciales.

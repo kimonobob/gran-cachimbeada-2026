@@ -1,7 +1,6 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
-import { Artists } from "@/components/sections/Artists";
 import { MusicSection } from "@/components/music/MusicSection";
 import { EventDetails } from "@/components/sections/EventDetails";
 import { Tickets } from "@/components/sections/Tickets";
@@ -19,7 +18,6 @@ export default function Home() {
       <Navbar />
       <main id="contenido">
         <Hero />
-        <Artists />
         <MusicSection />
         <EventDetails />
         <Tickets />
