@@ -15,7 +15,7 @@ export const raffle = {
   procedure: null as string | null,
   /** Ej.: "El ganador será contactado por WhatsApp..." */
   delivery: null as string | null,
-  terms: [] as string[],
+  terms: ["Solo habrá un ganador."] as string[],
   disclaimer:
     "Claude es una marca de Anthropic y ChatGPT es una marca de OpenAI. El sorteo es organizado por los responsables del evento y no está patrocinado, avalado ni administrado por dichas empresas. Participar no garantiza obtener un premio.",
 };
