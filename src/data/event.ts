@@ -10,7 +10,7 @@ export const event = {
   subtitle: "Ingeniería Económica 2026",
   fullName: "Gran Recepción al Cachimbo - Ingeniería Económica",
   description:
-    "La Gran Recepción al Cachimbo de Ingeniería Económica de la Universidad Nacional del Altiplano - Puno. Una noche con Águilas de América, Rosita de Espinar y Roy Gentiles.",
+    "La Gran Recepción al Cachimbo de Ingeniería Económica de la Universidad Nacional del Altiplano - Puno. Una noche con Águilas de América, Rosita de Espinar y Roy Gentiles en Pérgola Jardín Puno.",
 
   /** Fecha y hora con desfase de Lima (UTC-5). */
   startDate: "2026-11-19T19:00:00-05:00",
@@ -23,17 +23,31 @@ export const event = {
   institution: "Universidad Nacional del Altiplano - Puno",
   city: "Puno, Perú",
 
-  /**
-   * Lugar del evento. Deja los valores en `null` hasta confirmarlo.
-   * Ejemplo:
-   *   name: "Coliseo ...",
-   *   address: "Av. ..., Puno",
-   *   mapsUrl: "https://maps.app.goo.gl/...",
-   */
+  /** Lugar del evento. */
   venue: {
-    name: null as string | null,
-    address: null as string | null,
-    mapsUrl: null as string | null,
+    name: "Pérgola Jardín Puno",
+    type: "Salón de eventos",
+    address: "Av. Panamá 613, Puno 21001, Perú",
+    /** Enlace de Google Maps (búsqueda por nombre y dirección). */
+    mapsUrl:
+      "https://www.google.com/maps/search/?api=1&query=P%C3%A9rgola%20Jard%C3%ADn%20Puno%2C%20Av.%20Panam%C3%A1%20613%2C%20Puno%2021001",
+    /** Mapa insertado (no requiere clave de API). Pon `null` para ocultarlo. */
+    mapEmbedUrl:
+      "https://www.google.com/maps?q=P%C3%A9rgola%20Jard%C3%ADn%20Puno%2C%20Av.%20Panam%C3%A1%20613%2C%20Puno%2021001&output=embed" as string | null,
+    photo: {
+      src: "/images/venue/pergola-jardin-puno.webp",
+      width: 1244,
+      height: 773,
+      alt: "Entrada de Pérgola Jardín Puno, salón de eventos con techo rojo y alfombra roja",
+    },
+  },
+
+  /** Plano del escenario con las zonas de entradas. */
+  stageMap: {
+    src: "/images/venue/escenario-zonas.webp",
+    width: 1400,
+    height: 968,
+    alt: "Plano del escenario: zona GOLDEN junto al escenario, VIP al medio y GENERAL al fondo",
   },
 
   contact: {

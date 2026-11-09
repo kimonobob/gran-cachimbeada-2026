@@ -19,8 +19,7 @@ Lucide**. La página se prerenderiza como contenido estático. No usa base de da
 | Hero | Título animado, iluminación ambiental, partículas, cuenta regresiva y un botón **Escuchar música** destacado que lleva a la sección de música |
 | Escucha sus más grandes éxitos | Los tres artistas a pantalla completa y sin marcos. El botón **Escuchar** reproduce al azar cualquiera de sus audios (cola *shuffle*: no se repite ninguno hasta que suenan todos). Tocar la foto de un artista reproduce solo sus audios, y el que suena se resalta |
 | Mini reproductor | Al salir de la sección aparece una barra flotante con pausa, otra al azar y cerrar |
-| Evento | Componente `EventDetails` con fecha, hora, lugar (editable), mapa opcional, contacto, cuenta regresiva y "Agregar a mi calendario" |
-| Entradas | Tarjetas GOLDEN y VIP con precio y beneficios editables, y botón a WhatsApp con un mensaje distinto para cada entrada |
+| Evento | Fecha, hora, cuenta regresiva, el lugar (foto, mapa, "Cómo llegar", "Agregar al calendario"), plano del escenario y las entradas GOLDEN, VIP y GENERAL con su precio y su botón de WhatsApp |
 | Sorteo | Premios por tipo de entrada, logotipos informativos, fecha, procedimiento y términos editables |
 | Afiche | Afiche original con visor ampliado, descarga y botón para compartir |
 | SEO | Metadatos, Open Graph (imagen generada), favicon y datos estructurados `MusicEvent` |
@@ -63,7 +62,7 @@ src/
     opengraph-image.tsx   # imagen para compartir en redes
   components/
     layout/               # Navbar, Footer, Providers
-    sections/             # Hero, Artists, EventDetails, Tickets, Raffle, Poster
+    sections/             # Hero, EventDetails (lugar + entradas), Raffle, Poster
     music/                # MusicProvider (audio), MusicSection, MiniPlayer
     ui/                   # Reveal, SectionHeading, CountdownDisplay, botones
   data/                   # <- TODO EL CONTENIDO EDITABLE
@@ -88,9 +87,8 @@ scripts/shuffle.test.mjs  # pruebas
 
 ### Detalles del evento — `src/data/event.ts`
 
-- **Lugar:** completa `venue.name`, `venue.address` y `venue.mapsUrl` (enlace de Google
-  Maps). Mientras `name` sea `null`, la web muestra "Por confirmar". El JSON-LD también
-  usa estos datos.
+- **Lugar:** `venue` (nombre, tipo, dirección, enlace y mapa de Google Maps, foto). La foto
+  del local y el plano del escenario están en `public/images/venue/`.
 - **Fecha/hora:** cambia `startDate` (formato ISO con `-05:00`) y las etiquetas
   `dateLabel`, `timeLabel`, `dateLong` y `timeLong`.
 - **Contacto:** `contact.whatsapp` en formato internacional sin `+` (ej. `51904536741`).
@@ -100,11 +98,16 @@ scripts/shuffle.test.mjs  # pruebas
   social: [{ label: "Facebook", url: "https://facebook.com/...", icon: "facebook" }],
   ```
 
-### Precios y beneficios — `src/data/tickets.ts`
+### Entradas y precios — `src/data/tickets.ts`
+
+Hay tres entradas: GOLDEN (S/ 60), VIP (S/ 50) y GENERAL (S/ 40).
 
 ```ts
-price: 50,                     // número en soles; null = "Precio por confirmar"
-benefits: ["Acceso preferente", "..."],
+price: 60,                     // número en soles; null = "Por confirmar"
+zone: "Zona más cercana al escenario",
+color: "#F5B642",              // color de la zona en el plano
+benefits: ["..."],              // opcional: solo se muestra si tiene elementos
+raffle: "Participa en...",     // null = no participa en el sorteo
 whatsappMessage: "Hola, ...",  // mensaje predefinido de WhatsApp
 ```
 

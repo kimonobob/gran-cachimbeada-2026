@@ -3,7 +3,6 @@ import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
 import { MusicSection } from "@/components/music/MusicSection";
 import { EventDetails } from "@/components/sections/EventDetails";
-import { Tickets } from "@/components/sections/Tickets";
 import { Raffle } from "@/components/sections/Raffle";
 import { Poster } from "@/components/sections/Poster";
 import { eventJsonLd } from "@/lib/structured-data";
@@ -20,7 +19,6 @@ export default function Home() {
         <Hero />
         <MusicSection />
         <EventDetails />
-        <Tickets />
         <Raffle />
         <Poster />
       </main>

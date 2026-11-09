@@ -21,15 +21,18 @@ export type Song = {
 };
 
 export type Ticket = {
-  id: "golden" | "vip";
+  id: "golden" | "vip" | "general";
   name: string;
-  tagline: string;
+  /** Ubicación de la zona respecto al escenario. */
+  zone: string;
   /** `null` mientras el precio no esté confirmado. */
   price: number | null;
   currency: string;
-  /** Lista vacía mientras los beneficios no estén confirmados. */
+  /** Color de la zona en el plano. */
+  color: string;
   benefits: string[];
-  raffle: string;
+  /** Texto del sorteo, o `null` si la entrada no participa. */
+  raffle: string | null;
   ctaLabel: string;
   whatsappMessage: string;
 };

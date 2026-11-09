@@ -1,29 +1,11 @@
 import { artists } from "@/data/artists";
 import { event, posterImage, siteUrl } from "@/data/event";
+import { tickets } from "@/data/tickets";
+import { whatsappUrl } from "@/lib/links";
 
-/**
- * Datos estructurados schema.org/Event.
- * Solo incluye el lugar cuando está confirmado en `event.ts`; no se inventan
- * precios ni ofertas.
- */
+/** Datos estructurados schema.org/MusicEvent con lugar y precios configurados. */
 export function eventJsonLd() {
   const { venue } = event;
-  const location = venue.name
-    ? {
-        "@type": "Place",
-        name: venue.name,
-        address: {
-          "@type": "PostalAddress",
-          streetAddress: venue.address ?? undefined,
-          addressLocality: "Puno",
-          addressCountry: "PE",
-        },
-      }
-    : {
-        "@type": "Place",
-        name: event.city,
-        address: { "@type": "PostalAddress", addressLocality: "Puno", addressCountry: "PE" },
-      };
 
   return {
     "@context": "https://schema.org",
@@ -34,10 +16,29 @@ export function eventJsonLd() {
     startDate: event.startDate,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    location,
+    location: {
+      "@type": "Place",
+      name: `${venue.name} - ${venue.type}`,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Av. Panamá 613",
+        addressLocality: "Puno",
+        postalCode: "21001",
+        addressCountry: "PE",
+      },
+    },
     image: [`${siteUrl}${posterImage.src}`],
     url: siteUrl,
     performer: artists.map((a) => ({ "@type": "PerformingGroup", name: a.name })),
+    offers: tickets
+      .filter((t) => t.price !== null)
+      .map((t) => ({
+        "@type": "Offer",
+        name: `Entrada ${t.name}`,
+        price: t.price,
+        priceCurrency: "PEN",
+        url: whatsappUrl(t.whatsappMessage),
+      })),
     organizer: {
       "@type": "Organization",
       name: `${event.fullName} - ${event.institution}`,
